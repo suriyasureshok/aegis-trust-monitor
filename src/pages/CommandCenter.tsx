@@ -1,5 +1,8 @@
 import { useState, useCallback, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
+import { Shield, Home, Terminal, Activity, Network, Zap, FileText, Info } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { SystemIntegrityStrip } from "@/components/gcs/SystemIntegrityStrip";
 import { CommandConsole, Command, CommandStatus } from "@/components/gcs/CommandConsole";
 import { DroneSimulation3D } from "@/components/gcs/DroneSimulation3D";
@@ -11,6 +14,8 @@ import { AnomalyAlert } from "@/components/gcs/AnomalyAlert";
 const generateId = () => Math.random().toString(36).substring(2, 9);
 
 export default function CommandCenter() {
+  const location = useLocation();
+
   // System status
   const [systemStatus, setSystemStatus] = useState<{
     aegisStatus: "ONLINE" | "DEGRADED" | "OFFLINE";
@@ -161,7 +166,7 @@ export default function CommandCenter() {
           setIsBlocked(false);
           setBlockReason(undefined);
           setLastPulse(null);
-        }, 3000);
+        }, 2000);
       } else {
         setLastPulse("success");
         setTimeout(() => setLastPulse(null), 1000);
@@ -249,7 +254,41 @@ export default function CommandCenter() {
   }, []);
 
   return (
-    <div className="flex h-screen w-full flex-col bg-background">
+    <div className="flex h-screen w-full bg-background">
+      {/* Sidebar */}
+      <aside className="fixed left-0 top-0 z-40 h-screen w-16 border-r border-border bg-sidebar flex flex-col items-center py-4">
+        <div className="mb-6">
+          <Shield className="h-8 w-8 text-primary" />
+        </div>
+        <nav className="flex flex-1 flex-col items-center gap-2">
+          {[
+            { path: "/", icon: Home, label: "Home" },
+            { path: "/command-center", icon: Terminal, label: "Command Center" },
+            { path: "/dashboard", icon: Activity, label: "Dashboard" },
+            { path: "/architecture", icon: Network, label: "Architecture" },
+            { path: "/simulation", icon: Zap, label: "Simulation" },
+            { path: "/logs", icon: FileText, label: "Logs" },
+            { path: "/about", icon: Info, label: "About" },
+          ].map((item) => (
+            <a
+              key={item.path}
+              href={item.path}
+              title={item.label}
+              className={cn(
+                "flex h-10 w-10 items-center justify-center rounded-lg transition-colors",
+                location.pathname === item.path
+                  ? "bg-primary/20 text-primary"
+                  : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+              )}
+            >
+              <item.icon className="h-5 w-5" />
+            </a>
+          ))}
+        </nav>
+      </aside>
+
+      {/* Main Content */}
+      <div className="ml-16 flex flex-1 flex-col">
       {/* Anomaly Alert Overlay */}
       <AnomalyAlert
         visible={anomalyAlert.visible}
@@ -290,6 +329,7 @@ export default function CommandCenter() {
         {/* Right Panel - Security Decision Engine */}
         <div className="w-72 shrink-0">
           <SecurityDecisionPanel decisions={decisions} />
+        </div>
         </div>
       </div>
     </div>
