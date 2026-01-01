@@ -9,6 +9,7 @@ import Architecture from "./pages/Architecture";
 import Simulation from "./pages/Simulation";
 import Logs from "./pages/Logs";
 import About from "./pages/About";
+import CommandCenter from "./pages/CommandCenter";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -21,6 +22,7 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Landing />} />
+          <Route path="/command-center" element={<CommandCenter />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/architecture" element={<Architecture />} />
           <Route path="/simulation" element={<Simulation />} />
