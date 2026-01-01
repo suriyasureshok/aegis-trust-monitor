@@ -263,7 +263,7 @@ export default function CommandCenter() {
       {/* Main Content Area */}
       <div className="flex flex-1 overflow-hidden">
         {/* Left Panel - Command Console */}
-        <div className="w-72 shrink-0">
+        <div className="w-64 shrink-0">
           <CommandConsole
             onCommandSend={handleCommandSend}
             pendingCommands={commands}
@@ -271,9 +271,9 @@ export default function CommandCenter() {
           />
         </div>
 
-        {/* Center Panel - 3D Drone Simulation */}
-        <div className="flex flex-1 flex-col">
-          <div className="flex-1">
+        {/* Center Panel - 3D Drone Simulation (Expanded) */}
+        <div className="flex min-w-0 flex-1 flex-col">
+          <div className="relative flex-1">
             <DroneSimulation3D
               telemetry={telemetry}
               isBlocked={isBlocked}
@@ -282,11 +282,13 @@ export default function CommandCenter() {
           </div>
 
           {/* Bottom Panel - Security Log Stream */}
-          <SecurityLogStream logs={logs} />
+          <div className="h-36 shrink-0">
+            <SecurityLogStream logs={logs} />
+          </div>
         </div>
 
         {/* Right Panel - Security Decision Engine */}
-        <div className="w-80 shrink-0">
+        <div className="w-72 shrink-0">
           <SecurityDecisionPanel decisions={decisions} />
         </div>
       </div>
