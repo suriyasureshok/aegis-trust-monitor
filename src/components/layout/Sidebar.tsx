@@ -1,15 +1,12 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { Shield, Activity, Network, Zap, FileText, Info, Home, Terminal } from "lucide-react";
+import { Shield, Activity, FileText, Home, Terminal } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
   { path: "/", label: "Home", icon: Home },
   { path: "/command-center", label: "Command Center", icon: Terminal },
   { path: "/dashboard", label: "Live Monitor", icon: Activity },
-  { path: "/architecture", label: "Architecture", icon: Network },
-  { path: "/simulation", label: "Attack Sim", icon: Zap },
   { path: "/logs", label: "Audit Logs", icon: FileText },
-  { path: "/about", label: "About", icon: Info },
 ];
 
 export function Sidebar() {

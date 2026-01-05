@@ -5,10 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Landing from "./pages/Landing";
 import Dashboard from "./pages/Dashboard";
-import Architecture from "./pages/Architecture";
-import Simulation from "./pages/Simulation";
 import Logs from "./pages/Logs";
-import About from "./pages/About";
 import CommandCenter from "./pages/CommandCenter";
 import NotFound from "./pages/NotFound";
 
@@ -24,10 +21,7 @@ const App = () => (
           <Route path="/" element={<Landing />} />
           <Route path="/command-center" element={<CommandCenter />} />
           <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/architecture" element={<Architecture />} />
-          <Route path="/simulation" element={<Simulation />} />
           <Route path="/logs" element={<Logs />} />
-          <Route path="/about" element={<About />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
