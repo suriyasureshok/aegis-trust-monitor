@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Shield, Home, Terminal, Activity, Network, Zap, FileText, Info } from "lucide-react";
+import { Shield, Home, Terminal, Activity, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SystemIntegrityStrip } from "@/components/gcs/SystemIntegrityStrip";
 import { CommandConsole, Command, CommandStatus } from "@/components/gcs/CommandConsole";
@@ -265,10 +265,7 @@ export default function CommandCenter() {
             { path: "/", icon: Home, label: "Home" },
             { path: "/command-center", icon: Terminal, label: "Command Center" },
             { path: "/dashboard", icon: Activity, label: "Dashboard" },
-            { path: "/architecture", icon: Network, label: "Architecture" },
-            { path: "/simulation", icon: Zap, label: "Simulation" },
             { path: "/logs", icon: FileText, label: "Logs" },
-            { path: "/about", icon: Info, label: "About" },
           ].map((item) => (
             <a
               key={item.path}
