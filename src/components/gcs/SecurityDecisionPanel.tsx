@@ -1,36 +1,55 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import {
-  FileText,
+  Shield,
+  Lock,
+  Brain,
   CheckCircle,
   XCircle,
-  Clock,
+  Info,
 } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export interface DecisionCard {
   id: string;
   commandType: string;
   timestamp: Date;
+  crypto: {
+    valid: boolean;
+    reason: string;
+  };
+  aiTrustScore: number;
   decision: "ACCEPTED" | "REJECTED";
   reason: string;
 }
 
-interface CommandHistoryPanelProps {
+interface SecurityDecisionPanelProps {
   decisions: DecisionCard[];
 }
 
-export function CommandHistoryPanel({ decisions }: CommandHistoryPanelProps) {
+export function SecurityDecisionPanel({ decisions }: SecurityDecisionPanelProps) {
   return (
     <div className="flex h-full flex-col border-l border-border bg-card/50">
       {/* Header */}
       <div className="border-b border-border px-4 py-3">
         <div className="flex items-center gap-2">
-          <FileText className="h-4 w-4 text-primary" />
+          <Shield className="h-4 w-4 text-primary" />
           <h2 className="font-mono text-sm font-bold text-foreground tracking-wider">
-            COMMAND HISTORY
+            SECURITY DECISION ENGINE
           </h2>
         </div>
-        <p className="mt-1 text-xs text-muted-foreground">Recent command log</p>
+        <p className="mt-1 text-xs text-muted-foreground">Real-time command validation</p>
+      </div>
+
+      {/* Educational Micro-copy */}
+      <div className="border-b border-border/50 bg-secondary/30 px-4 py-2">
+        <p className="text-center font-mono text-xs italic text-muted-foreground">
+          "Authenticity does not imply safety"
+        </p>
       </div>
 
       {/* Decision Cards */}
@@ -55,15 +74,69 @@ export function CommandHistoryPanel({ decisions }: CommandHistoryPanelProps) {
                 <span className="font-mono text-sm font-bold text-foreground">
                   {decision.commandType}
                 </span>
-                <div className="flex items-center gap-1 text-muted-foreground">
-                  <Clock className="h-3 w-3" />
-                  <span className="font-mono text-xs">
-                    {decision.timestamp.toLocaleTimeString()}
-                  </span>
+                <span className="font-mono text-xs text-muted-foreground">
+                  {decision.timestamp.toLocaleTimeString()}
+                </span>
+              </div>
+
+              {/* Crypto Result */}
+              <div className="mb-2 flex items-center justify-between rounded border border-border/50 bg-secondary/30 px-2 py-1.5">
+                <div className="flex items-center gap-2">
+                  <Lock className="h-3.5 w-3.5 text-muted-foreground" />
+                  <span className="text-xs text-muted-foreground">Crypto:</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  {decision.crypto.valid ? (
+                    <>
+                      <CheckCircle className="h-3.5 w-3.5 text-accent" />
+                      <span className="font-mono text-xs text-accent">VALID</span>
+                    </>
+                  ) : (
+                    <>
+                      <XCircle className="h-3.5 w-3.5 text-destructive" />
+                      <span className="font-mono text-xs text-destructive">FAILED</span>
+                    </>
+                  )}
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <Info className="h-3 w-3 text-muted-foreground" />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p className="text-xs">{decision.crypto.reason}</p>
+                    </TooltipContent>
+                  </Tooltip>
                 </div>
               </div>
 
-              {/* Status */}
+              {/* AI Trust Score */}
+              <div className="mb-2 flex items-center justify-between rounded border border-border/50 bg-secondary/30 px-2 py-1.5">
+                <div className="flex items-center gap-2">
+                  <Brain className="h-3.5 w-3.5 text-muted-foreground" />
+                  <span className="text-xs text-muted-foreground">AI Trust:</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <TrustScoreBar score={decision.aiTrustScore} />
+                  <span
+                    className={cn(
+                      "font-mono text-xs font-bold",
+                      decision.aiTrustScore >= 0 ? "text-accent" : "text-destructive"
+                    )}
+                  >
+                    {decision.aiTrustScore > 0 ? "+" : ""}
+                    {decision.aiTrustScore.toFixed(2)}
+                  </span>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <Info className="h-3 w-3 text-muted-foreground" />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p className="text-xs">AI validates behavior and intent</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
+              </div>
+
+              {/* Decision */}
               <div
                 className={cn(
                   "mb-2 flex items-center justify-center gap-2 rounded py-2 font-mono text-sm font-bold",
@@ -82,7 +155,7 @@ export function CommandHistoryPanel({ decisions }: CommandHistoryPanelProps) {
 
               {/* Reason */}
               <div className="rounded border border-border/30 bg-card/50 px-2 py-1.5">
-                <span className="text-xs text-muted-foreground">Note: </span>
+                <span className="text-xs text-muted-foreground">Reason: </span>
                 <span className="text-xs text-foreground">{decision.reason}</span>
               </div>
             </motion.div>
@@ -92,18 +165,35 @@ export function CommandHistoryPanel({ decisions }: CommandHistoryPanelProps) {
         {decisions.length === 0 && (
           <div className="flex h-full items-center justify-center">
             <p className="font-mono text-xs text-muted-foreground">
-              No commands sent yet
+              Awaiting commands...
             </p>
           </div>
         )}
       </div>
 
-      {/* Footer */}
+      {/* Educational Footer */}
       <div className="border-t border-border/50 bg-secondary/20 px-4 py-2">
         <p className="text-center font-mono text-xs text-muted-foreground">
-          Mission Log Active
+          Zero-Trust Autonomy Enabled
         </p>
       </div>
+    </div>
+  );
+}
+
+function TrustScoreBar({ score }: { score: number }) {
+  // Normalize score from [-1, 1] to [0, 100]
+  const percentage = ((score + 1) / 2) * 100;
+
+  return (
+    <div className="h-2 w-16 overflow-hidden rounded-full bg-secondary">
+      <div
+        className={cn(
+          "h-full rounded-full transition-all",
+          score >= 0 ? "bg-accent" : "bg-destructive"
+        )}
+        style={{ width: `${percentage}%` }}
+      />
     </div>
   );
 }
