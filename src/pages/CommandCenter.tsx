@@ -1,12 +1,12 @@
 import { useState, useCallback, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Shield, Home, Terminal, Activity, Network, Zap, FileText, Info } from "lucide-react";
+import { Compass, Home, Terminal, Activity, Network, Zap, FileText, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SystemIntegrityStrip } from "@/components/gcs/SystemIntegrityStrip";
 import { CommandConsole, Command, CommandStatus } from "@/components/gcs/CommandConsole";
 import { DroneSimulation3D } from "@/components/gcs/DroneSimulation3D";
-import { SecurityDecisionPanel, DecisionCard } from "@/components/gcs/SecurityDecisionPanel";
+import { CommandHistoryPanel, DecisionCard } from "@/components/gcs/SecurityDecisionPanel";
 import { SecurityLogStream, LogEntry, LogLevel } from "@/components/gcs/SecurityLogStream";
 import { AnomalyAlert } from "@/components/gcs/AnomalyAlert";
 
@@ -18,15 +18,15 @@ export default function CommandCenter() {
 
   // System status
   const [systemStatus, setSystemStatus] = useState<{
-    aegisStatus: "ONLINE" | "DEGRADED" | "OFFLINE";
-    cryptoLayer: "ACTIVE" | "INACTIVE";
-    aiTrustEngine: "RUNNING" | "STOPPED" | "ERROR";
+    gcsStatus: "ONLINE" | "DEGRADED" | "OFFLINE";
     droneLink: "CONNECTED" | "DISCONNECTED" | "CONNECTING";
+    gpsStatus: "3D_FIX" | "2D_FIX" | "NO_FIX";
+    batteryLevel: number;
   }>({
-    aegisStatus: "ONLINE",
-    cryptoLayer: "ACTIVE",
-    aiTrustEngine: "RUNNING",
+    gcsStatus: "ONLINE",
     droneLink: "CONNECTED",
+    gpsStatus: "3D_FIX",
+    batteryLevel: 85,
   });
 
   // Telemetry data
@@ -70,64 +70,39 @@ export default function CommandCenter() {
     setLogs((prev) => [...prev.slice(-100), newLog]); // Keep last 100 logs
   }, []);
 
-  // Process command through AEGIS validation
+  // Process command
   const processCommand = useCallback(
     (command: Command) => {
-      // Simulate crypto validation
-      const cryptoValid = Math.random() > 0.2; // 80% pass rate
-      const cryptoReason = cryptoValid
-        ? "AES-GCM verified"
-        : Math.random() > 0.5
-        ? "Replay detected"
-        : "Integrity failure";
-
-      // Simulate AI trust score (-1 to +1)
-      let aiScore = cryptoValid ? (Math.random() * 1.4 - 0.2) : (Math.random() * 0.8 - 0.8);
-      
-      // Special case for suspicious GOTO commands
-      if (command.type === "GOTO" && command.params) {
-        const alt = command.params.alt as number;
-        if (alt > 100) {
-          aiScore = -0.5 - Math.random() * 0.5; // Negative score for suspicious altitude
-        }
-      }
-
-      aiScore = Math.max(-1, Math.min(1, aiScore)); // Clamp to [-1, 1]
-
-      // Decision logic
-      const decision: "ACCEPTED" | "REJECTED" = cryptoValid && aiScore >= 0 ? "ACCEPTED" : "REJECTED";
+      // Simulate command validation (simple success/failure)
+      const isSuccess = Math.random() > 0.2; // 80% success rate
 
       // Generate reason
       let reason = "";
-      if (!cryptoValid) {
-        reason = `Cryptographic ${cryptoReason.toLowerCase()}`;
-      } else if (aiScore < 0) {
+      if (!isSuccess) {
         const reasons = [
-          "Implied velocity exceeds physical limits",
-          "Behavioral anomaly detected",
-          "Sudden trajectory deviation",
-          "Command sequence inconsistent",
+          "Command timeout",
+          "Invalid parameters",
+          "Drone not ready",
+          "Outside flight zone",
         ];
         reason = reasons[Math.floor(Math.random() * reasons.length)];
       } else {
-        reason = "Command validated and authorized";
+        reason = "Command executed successfully";
       }
+
+      const decision: "ACCEPTED" | "REJECTED" = isSuccess ? "ACCEPTED" : "REJECTED";
 
       // Create decision card
       const decisionCard: DecisionCard = {
         id: generateId(),
         commandType: command.type,
         timestamp: new Date(),
-        crypto: { valid: cryptoValid, reason: cryptoReason },
-        aiTrustScore: aiScore,
         decision,
         reason,
       };
 
       // Add logs
       addLog("CMD_RECEIVED", command.type, "info");
-      addLog(cryptoValid ? "CRYPTO_OK" : "CRYPTO_FAIL", cryptoReason, cryptoValid ? "success" : "error");
-      addLog("AI_SCORE", aiScore.toFixed(2), aiScore >= 0 ? "success" : "warning");
       addLog("DECISION", decision, decision === "ACCEPTED" ? "success" : "error");
 
       // Update state
@@ -146,21 +121,20 @@ export default function CommandCenter() {
         setIsBlocked(true);
         setBlockReason(reason);
 
-        // Show anomaly alert for certain cases
-        if (!cryptoValid || aiScore < -0.3) {
-          setAnomalyAlert({
-            visible: true,
-            message: "ANOMALOUS COMMAND SEQUENCE DETECTED",
-            reason,
-          });
+        // Show anomaly alert for failures
+        setAnomalyAlert({
+          visible: true,
+          message: "COMMAND FAILED",
+          reason,
+        });
 
-          // Trigger safe mode
-          const safeMode = aiScore < -0.5 ? "RTL" : "HOLD";
-          addLog("SAFE_MODE", safeMode === "RTL" ? "Return to Launch" : "Hold Position", "warning");
-          setTelemetry((prev) => ({ ...prev, flightMode: safeMode }));
+        setTimeout(() => setAnomalyAlert({ ...anomalyAlert, visible: false }), 2000);
 
-          setTimeout(() => setAnomalyAlert({ ...anomalyAlert, visible: false }), 4000);
-        }
+        setTimeout(() => {
+          setIsBlocked(false);
+          setBlockReason(undefined);
+          setLastPulse(null);
+        }, 2000);
 
         setTimeout(() => {
           setIsBlocked(false);
@@ -258,7 +232,7 @@ export default function CommandCenter() {
       {/* Sidebar */}
       <aside className="fixed left-0 top-0 z-40 h-screen w-16 border-r border-border bg-sidebar flex flex-col items-center py-4">
         <div className="mb-6">
-          <Shield className="h-8 w-8 text-primary" />
+          <Compass className="h-8 w-8 text-primary" />
         </div>
         <nav className="flex flex-1 flex-col items-center gap-2">
           {[
@@ -306,7 +280,7 @@ export default function CommandCenter() {
           <CommandConsole
             onCommandSend={handleCommandSend}
             pendingCommands={commands}
-            disabled={systemStatus.aegisStatus === "OFFLINE"}
+            disabled={systemStatus.gcsStatus === "OFFLINE"}
           />
         </div>
 
@@ -320,15 +294,15 @@ export default function CommandCenter() {
             />
           </div>
 
-          {/* Bottom Panel - Security Log Stream */}
+          {/* Bottom Panel - Event Log */}
           <div className="h-36 shrink-0">
             <SecurityLogStream logs={logs} />
           </div>
         </div>
 
-        {/* Right Panel - Security Decision Engine */}
+        {/* Right Panel - Command History */}
         <div className="w-72 shrink-0">
-          <SecurityDecisionPanel decisions={decisions} />
+          <CommandHistoryPanel decisions={decisions} />
         </div>
         </div>
       </div>
