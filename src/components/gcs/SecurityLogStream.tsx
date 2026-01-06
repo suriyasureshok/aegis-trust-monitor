@@ -105,10 +105,10 @@ export function SecurityLogStream({ logs }: SecurityLogStreamProps) {
         )}
       </div>
 
-      {/* Educational Micro-copy */}
+      {/* Footer */}
       <div className="border-t border-border/30 bg-secondary/20 px-4 py-1">
         <p className="text-center font-mono text-xs italic text-muted-foreground">
-          "Physics cannot be forged" — Behavioral consistency enforced
+          System Event Log
         </p>
       </div>
     </div>

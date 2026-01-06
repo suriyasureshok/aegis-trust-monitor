@@ -1,12 +1,12 @@
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { Shield, Lock, Brain, Radio, Clock } from "lucide-react";
+import { Radio, Clock, Compass, Battery, Signal } from "lucide-react";
 
 interface SystemStatus {
-  aegisStatus: "ONLINE" | "DEGRADED" | "OFFLINE";
-  cryptoLayer: "ACTIVE" | "INACTIVE";
-  aiTrustEngine: "RUNNING" | "STOPPED" | "ERROR";
+  gcsStatus: "ONLINE" | "DEGRADED" | "OFFLINE";
   droneLink: "CONNECTED" | "DISCONNECTED" | "CONNECTING";
+  gpsStatus: "3D_FIX" | "2D_FIX" | "NO_FIX";
+  batteryLevel: number;
 }
 
 interface SystemIntegrityStripProps {
@@ -18,12 +18,12 @@ export function SystemIntegrityStrip({ status, lastPulse }: SystemIntegrityStrip
   const getStatusColor = (value: string) => {
     switch (value) {
       case "ONLINE":
-      case "ACTIVE":
-      case "RUNNING":
       case "CONNECTED":
+      case "3D_FIX":
         return "text-accent";
       case "DEGRADED":
       case "CONNECTING":
+      case "2D_FIX":
         return "text-warning";
       default:
         return "text-destructive";
@@ -33,16 +33,22 @@ export function SystemIntegrityStrip({ status, lastPulse }: SystemIntegrityStrip
   const getStatusDot = (value: string) => {
     switch (value) {
       case "ONLINE":
-      case "ACTIVE":
-      case "RUNNING":
       case "CONNECTED":
+      case "3D_FIX":
         return "bg-accent";
       case "DEGRADED":
       case "CONNECTING":
+      case "2D_FIX":
         return "bg-warning";
       default:
         return "bg-destructive";
     }
+  };
+
+  const getBatteryColor = (level: number) => {
+    if (level > 50) return "text-accent";
+    if (level > 20) return "text-warning";
+    return "text-destructive";
   };
 
   const currentTime = new Date().toISOString().slice(11, 19);
@@ -59,47 +65,47 @@ export function SystemIntegrityStrip({ status, lastPulse }: SystemIntegrityStrip
     >
       {/* System ID */}
       <div className="flex items-center gap-3">
-        <Shield className="h-5 w-5 text-primary" />
+        <Compass className="h-5 w-5 text-primary" />
         <span className="font-mono text-sm font-bold text-foreground tracking-wider">
-          SYSTEM: PROJECT AEGIS
+          GCS CONTROL
         </span>
       </div>
 
       {/* Status Indicators */}
       <div className="flex items-center gap-6">
-        {/* AEGIS Status */}
+        {/* GCS Status */}
         <div className="flex items-center gap-2">
-          <div className={cn("h-2 w-2 rounded-full animate-pulse", getStatusDot(status.aegisStatus))} />
-          <span className="text-xs text-muted-foreground">AEGIS:</span>
-          <span className={cn("font-mono text-xs font-semibold", getStatusColor(status.aegisStatus))}>
-            {status.aegisStatus}
-          </span>
-        </div>
-
-        {/* Crypto Layer */}
-        <div className="flex items-center gap-2">
-          <Lock className="h-3.5 w-3.5 text-muted-foreground" />
-          <span className="text-xs text-muted-foreground">CRYPTO:</span>
-          <span className={cn("font-mono text-xs font-semibold", getStatusColor(status.cryptoLayer))}>
-            {status.cryptoLayer}
-          </span>
-        </div>
-
-        {/* AI Trust Engine */}
-        <div className="flex items-center gap-2">
-          <Brain className="h-3.5 w-3.5 text-muted-foreground" />
-          <span className="text-xs text-muted-foreground">AI ENGINE:</span>
-          <span className={cn("font-mono text-xs font-semibold", getStatusColor(status.aiTrustEngine))}>
-            {status.aiTrustEngine}
+          <div className={cn("h-2 w-2 rounded-full animate-pulse", getStatusDot(status.gcsStatus))} />
+          <span className="text-xs text-muted-foreground">GCS:</span>
+          <span className={cn("font-mono text-xs font-semibold", getStatusColor(status.gcsStatus))}>
+            {status.gcsStatus}
           </span>
         </div>
 
         {/* Drone Link */}
         <div className="flex items-center gap-2">
           <Radio className="h-3.5 w-3.5 text-muted-foreground" />
-          <span className="text-xs text-muted-foreground">ARDUPILOT SITL:</span>
+          <span className="text-xs text-muted-foreground">LINK:</span>
           <span className={cn("font-mono text-xs font-semibold", getStatusColor(status.droneLink))}>
             {status.droneLink}
+          </span>
+        </div>
+
+        {/* GPS Status */}
+        <div className="flex items-center gap-2">
+          <Signal className="h-3.5 w-3.5 text-muted-foreground" />
+          <span className="text-xs text-muted-foreground">GPS:</span>
+          <span className={cn("font-mono text-xs font-semibold", getStatusColor(status.gpsStatus))}>
+            {status.gpsStatus}
+          </span>
+        </div>
+
+        {/* Battery */}
+        <div className="flex items-center gap-2">
+          <Battery className="h-3.5 w-3.5 text-muted-foreground" />
+          <span className="text-xs text-muted-foreground">BAT:</span>
+          <span className={cn("font-mono text-xs font-semibold", getBatteryColor(status.batteryLevel))}>
+            {status.batteryLevel}%
           </span>
         </div>
       </div>

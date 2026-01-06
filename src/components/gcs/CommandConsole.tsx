@@ -32,16 +32,41 @@ interface CommandConsoleProps {
   disabled?: boolean;
 }
 
+export type GCSMode = "MANUAL" | "ASSISTED" | "AUTONOMOUS";
+
 export function CommandConsole({ onCommandSend, pendingCommands, disabled }: CommandConsoleProps) {
   const [takeoffAlt, setTakeoffAlt] = useState("10");
   const [gotoLat, setGotoLat] = useState("37.7749");
   const [gotoLon, setGotoLon] = useState("-122.4194");
   const [gotoAlt, setGotoAlt] = useState("50");
+  const [gcsMode, setGcsMode] = useState<GCSMode>("MANUAL");
 
   const commands = [
     { id: "ARM", icon: Power, label: "ARM", color: "accent" },
     { id: "DISARM", icon: PowerOff, label: "DISARM", color: "warning" },
   ];
+
+  const getModeColor = (mode: GCSMode) => {
+    switch (mode) {
+      case "MANUAL":
+        return "border-primary bg-primary/20 text-primary";
+      case "ASSISTED":
+        return "border-warning bg-warning/20 text-warning";
+      case "AUTONOMOUS":
+        return "border-accent bg-accent/20 text-accent";
+    }
+  };
+
+  const getModeDescription = (mode: GCSMode) => {
+    switch (mode) {
+      case "MANUAL":
+        return "Full operator control";
+      case "ASSISTED":
+        return "Operator + guidance";
+      case "AUTONOMOUS":
+        return "Automated flight";
+    }
+  };
 
   const getStatusIcon = (status: CommandStatus) => {
     switch (status) {
@@ -75,19 +100,33 @@ export function CommandConsole({ onCommandSend, pendingCommands, disabled }: Com
       {/* Header */}
       <div className="border-b border-border px-4 py-3">
         <h2 className="font-mono text-sm font-bold text-foreground tracking-wider">
-          SECURE COMMAND CONSOLE
+          COMMAND CONSOLE
         </h2>
         <p className="mt-1 text-xs text-muted-foreground">Ground Control Station</p>
       </div>
 
-      {/* Warning Banner */}
-      <div className="mx-3 mt-3 rounded border border-warning/30 bg-warning/5 px-3 py-2">
-        <div className="flex items-start gap-2">
-          <AlertTriangle className="h-4 w-4 shrink-0 text-warning" />
-          <p className="text-xs text-warning/80">
-            All commands are subject to cryptographic and AI-based validation.
-          </p>
+      {/* GCS Mode Selector */}
+      <div className="border-b border-border p-3">
+        <label className="mb-2 block text-xs text-muted-foreground">GCS MODE</label>
+        <div className="grid grid-cols-3 gap-1">
+          {(["MANUAL", "ASSISTED", "AUTONOMOUS"] as GCSMode[]).map((mode) => (
+            <button
+              key={mode}
+              onClick={() => setGcsMode(mode)}
+              className={cn(
+                "rounded border px-2 py-1.5 font-mono text-xs transition-all",
+                gcsMode === mode
+                  ? getModeColor(mode)
+                  : "border-border bg-secondary/30 text-muted-foreground hover:bg-secondary/50"
+              )}
+            >
+              {mode}
+            </button>
+          ))}
         </div>
+        <p className="mt-2 text-center text-xs text-muted-foreground">
+          {getModeDescription(gcsMode)}
+        </p>
       </div>
 
       {/* Command Buttons */}
